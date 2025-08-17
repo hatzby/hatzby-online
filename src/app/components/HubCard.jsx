@@ -2,7 +2,7 @@
 
 export default function HubCard({
   title,
-  desc,
+  description, // renamed from desc to match other components
   href,              // optional
   onClick,           // optional
   color = "#bf5b5b",
@@ -10,10 +10,12 @@ export default function HubCard({
   bgImage,
   icon,
   fadeMaskStyle,
+  isOpen,  // for EntryPicker dropdown arrow
 }) {
   const baseClass =
     // block + w-full keeps identical width/flow across tags
-    "relative block w-full rounded-xl p-4 mb-3 bg-[#595758] overflow-hidden " +
+    "relative block w-full rounded-xl p-4 mb-3 overflow-hidden " +
+    "bg-[var(--card-bg)] text-white " +  // force white text for all cards
     "transition hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.18)] " +
     "text-left";
 
@@ -51,8 +53,11 @@ export default function HubCard({
             {icon ? <span aria-hidden className="inline-flex">{icon}</span> : null}
             {title}
           </span>
+          {typeof isOpen === 'boolean' && (
+            <span aria-hidden className={`transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
+          )}
         </div>
-        <p className="mt-1 text-sm opacity-90">{desc}</p>
+        <p className="mt-1 text-sm opacity-90">{description}</p>
       </div>
     </>
   );
@@ -63,7 +68,7 @@ export default function HubCard({
       <button
         type="button"
         onClick={onClick}
-        className={`${baseClass} ${clickable} ${interactiveFocus} appearance-none border-0 bg-transparent`}
+        className={`${baseClass} ${clickable} ${interactiveFocus} appearance-none border-0`}
         aria-label={title}
       >
         {inner}

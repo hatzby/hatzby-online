@@ -4,47 +4,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---- Site-wide basics ---- */
+/* ---- Theme variables ---- */
 :root {
-  --offwhite: rgba(255, 255, 243, 1);;
+  --background: rgba(255, 255, 243, 1);
+  --card-bg: #595758;
+  --text: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.8);
+  
+  /* Header gradient colors */
+  --gradient-1: #bf5b5b;
+  --gradient-2: #c6b955;
+  --gradient-3: #86b460;
+  --gradient-4: #3c8d88;
+  --gradient-5: #595758;
+}
+
+/* Dark mode overrides handled by useTheme.js */
+body.dark {
+  color-scheme: dark;
+  --scrollbar-color: #2d3e3f;
+  --scrollbar-bg: #1D2E2F;
+}
+
+body {
+  --scrollbar-color: #6f6f6f;
+  --scrollbar-bg: #595758;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-color);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--scrollbar-color) 80%, white);
 }
 
 html, body {
   height: 100%;
-  background: var(--offwhite);
+  background: var(--background);
+  color: var(--text);
+  transition: all 0.3s ease;
+  scrollbar-color: var(--scrollbar-color) var(--scrollbar-bg);
 }
 
 /* ---- Header visuals ---- */
-.header-stripes {
+.header-gradient {
   background: linear-gradient(
     135deg,
-    #bf5b5b 0%, #bf5b5b 20%,
-    #c6b955 20%, #c6b955 40%,
-    #86b460 40%, #86b460 60%,
-    #3c8d88 60%, #3c8d88 80%,
-    #595758 80%, #595758 100%
+    var(--gradient-1) 0%, var(--gradient-1) 20%,
+    var(--gradient-2) 20%, var(--gradient-2) 40%,
+    var(--gradient-3) 40%, var(--gradient-3) 60%,
+    var(--gradient-4) 60%, var(--gradient-4) 80%,
+    var(--gradient-5) 80%, var(--gradient-5) 100%
   );
   background-repeat: no-repeat;
   background-size: cover;
 }
 
-.scanlines {
-  background-image: repeating-linear-gradient(
-    180deg,
-    rgba(255,255,255,0.02) 0px,
-    rgba(255,255,255,0.02) 1px,
-    transparent 1px,
-    transparent 3px
-  );
+/* ---- Animations ---- */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * var(--bandW))); }
 }
 
-/* ---- Marquee (CSS variables driven) ---- */
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Component styles ---- */
 .marquee-track {
   width: max-content;
-  animation: marquee var(--dur, 10s) linear infinite;
 }
 
-@keyframes marquee {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(calc(-1 * var(--w, 400px))); }
+.panel-swap-in {
+  animation: panelIn 160ms ease-out;
+}
+
+/* ---- Links in prose sections ---- */
+.prose.prose-invert a {
+  text-decoration: underline;
 }

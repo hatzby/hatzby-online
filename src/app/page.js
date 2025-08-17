@@ -2,9 +2,12 @@
 
 import { useEffect, useMemo, useState, Suspense } from "react";
 
-import HubCard from "./components/HubCard";
 import SidePanel from "./components/SidePanel";
 import EntryPicker from "./components/EntryPicker";
+import HubCard from "./components/HubCard";
+import ThemeToggle from "./components/ThemeToggle";
+import ThemeTransition from "./components/ThemeTransition";
+import { useTheme } from "./hooks/useTheme";
 
 // Mobile detection hook
 function useMobileDetector() {
@@ -66,7 +69,8 @@ const IconPaper = (
 );
 
 export default function Hub() {
-  const GREY = "#595758";
+  const { theme, isTransitioning } = useTheme();
+  const GREY = theme === 'dark' ? "#1D2E2F" : "#595758";
   const isMobile = useMobileDetector();
 
   // Header marquee
@@ -160,41 +164,33 @@ export default function Hub() {
 
   return (
     <main className={`min-h-screen flex flex-col text-white ${side.resizing ? "cursor-col-resize select-none" : ""}`}>
-      {isMobile && <MobileHostileOverlay />}
+      <ThemeTransition isChanging={isTransitioning} />
       {/* HEADER */}
-      <header className="relative overflow-hidden shadow-md py-3 sm:py-4">
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(135deg,
-              #bf5b5b 0%, #bf5b5b 20%,
-              #c6b955 20%, #c6b955 40%,
-              #86b460 40%, #86b460 60%,
-              #3c8d88 60%, #3c8d88 80%,
-              ${GREY} 80%, ${GREY} 100%)`,
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
-          }}
-          aria-hidden
-        />
-        <div className="relative z-10">
-          <div className="inline-flex max-w-full items-center gap-3 sm:gap-4 rounded-xl bg-black/60 px-3 sm:px-4 py-2 ml-2 mt-1 mb-2">
-            <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight">My Hub</h1>
-            <div className="overflow-hidden rounded-md h-7 sm:h-8" style={{ width: containerW ? `${containerW}px` : undefined }}>
-              <div
-                className="marquee-track flex items-center will-change-transform text-base sm:text-lg font-extrabold tracking-tight"
-                style={{ width: "max-content", animation: bandW ? `marquee ${dur}s linear infinite` : "none", ["--bandW"]: `${bandW}px` }}
-              >
-                <div className="flex items-center">
-                  <span ref={bandRef} className="inline-block">{text}</span>
-                  <span aria-hidden className="inline-block" style={{ width: "48px" }} />
-                </div>
-                <div className="flex items-center" aria-hidden>
-                  <span className="inline-block">{text}</span>
-                  <span className="inline-block" style={{ width: "48px" }} />
+      <header className="relative overflow-hidden shadow-md">
+        <div className="absolute inset-0 header-gradient" aria-hidden />
+        <div className="relative z-10 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex justify-between items-center max-w-full">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="inline-flex items-center gap-3 sm:gap-4 rounded-xl bg-black/60 p-2 sm:p-3 min-w-0 w-full">
+                <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight shrink-0">My Hub</h1>
+                <div className="overflow-hidden rounded-md h-7 sm:h-8 min-w-0 w-full max-w-[min(200px,50vw)] sm:max-w-[300px]">
+                  <div
+                    className="marquee-track flex items-center will-change-transform text-sm sm:text-base md:text-lg font-extrabold tracking-tight"
+                    style={{ width: "max-content", animation: bandW ? `marquee ${dur}s linear infinite` : "none", ["--bandW"]: `${bandW}px` }}
+                  >
+                    <div className="flex items-center">
+                      <span ref={bandRef} className="inline-block">{text}</span>
+                      <span aria-hidden className="inline-block" style={{ width: "24px" }} />
+                    </div>
+                    <div className="flex items-center" aria-hidden>
+                      <span className="inline-block">{text}</span>
+                      <span aria-hidden className="inline-block" style={{ width: "24px" }} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -202,45 +198,21 @@ export default function Hub() {
       {/* BODY */}
       <section className="relative flex-1 pl-6 pr-6 sm:pl-8 sm:pr-8 py-6 overflow-x-clip">
         <div className="w-full max-w-xl">
-          {/* this fucking sucks */}
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={openPortfolio}                // <-- call the loader above
-            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openPortfolio()}
-            className="relative rounded-xl p-4 mb-3 bg-[#595758] overflow-hidden transition hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.18)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          >
-            <div
-              className="absolute top-0 right-0 h-full w-1/2 z-0"
-              style={{
-                backgroundColor: "#ffc2c2ff",
-                backgroundImage: `linear-gradient(#ffc2c2ff, #ffc2c2ff), url(/HubCardImages/Portfolio.png)`, // add leading slash
-                backgroundBlendMode: "multiply",
-                backgroundSize: "cover, cover",
-                backgroundPosition: "center, center",
-                backgroundRepeat: "no-repeat, no-repeat",
-                ...fadeMask,
-                borderTopRightRadius: "0.75rem",
-                borderBottomRightRadius: "0.75rem",
-              }}
-              aria-hidden
-            />
-            <div className="relative z-10">
-              <div className="flex items-center justify-between text-lg sm:text-xl font-semibold">
-                <span className="flex items-center gap-2">
-                  {IconBriefcase}
-                  Portfolio
-                </span>
-              </div>
-              <p className="mt-1 text-sm opacity-90">I / Me / Myself</p>
-            </div>
-          </div>
+          <HubCard
+            title="Portfolio"
+            description="I / Me / Myself"
+            icon={IconBriefcase}
+            overlayColor={theme === 'dark' ? "#9E2A2B" : "#ffc2c2ff"}
+            bgImage="/HubCardImages/Portfolio.png"
+            onClick={openPortfolio}
+            fadeMaskStyle={fadeMask}
+          />
 
           {/* Projects picker */}
           <EntryPicker
             title="Projects"
             icon={IconWrench}
-            overlayColor="#e6dea7ff"
+            overlayColor={theme === 'dark' ? "#D9843F" : "#e6dea7ff"}
             bgImage="HubCardImages/Projects.png"
             items={projectIndex || []}
             isOpen={projectsOpen}
@@ -254,7 +226,7 @@ export default function Hub() {
           <EntryPicker
             title="Blog"
             icon={IconPaper}
-            overlayColor="#6fe1fdff"
+            overlayColor={theme === 'dark' ? "#D0CA92" : "#6fe1fdff"}
             bgImage="HubCardImages/Blog.png"
             items={blogIndex || []}
             isOpen={blogOpen}
@@ -272,6 +244,7 @@ export default function Hub() {
             width={`${side.width}px`}
             onResizeStart={side.startResize}
             onExited={() => {
+              side.close();  // Close the panel first
               setActiveEntry(null);
               setEntryComp(null);
             }}
@@ -301,26 +274,11 @@ export default function Hub() {
         <div className="max-w-xl text-sm text-white opacity-90">
           <p>hatzby.online - Work In Progress</p>
           <p>Special Thanks: PupNetx</p>
-          <p>Updated: Aug.08.2025</p>
+          <p>Updated: Aug.18.2025</p>
         </div>
       </footer>
 
-      {/* Local styles */}
-      <style jsx>{`
-      @keyframes panelIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  :global(.panel-swap-in) {
-    animation: panelIn 160ms ease-out;
-  }
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(calc(-1 * var(--bandW))); }
-        }
-        :global(html), :global(body) { background: #fffff3ff; }
-        :global(.prose.prose-invert) a { text-decoration: underline; }
-      `}</style>
+
     </main>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "../hooks/useTheme";
 
 export default function SidePanel({
   open,
@@ -10,6 +11,7 @@ export default function SidePanel({
   children,
   grey = "#595758",
 }) {
+  const { theme } = useTheme();
   // --- Snapshot last non-empty title/content to avoid fallback flicker
   const lastTitleRef = useRef(title);
   const lastChildrenRef = useRef(children);
@@ -60,11 +62,12 @@ export default function SidePanel({
 
   return (
     <aside 
-      className="absolute inset-y-0 right-0 text-[#111] flex flex-col z-50"
+      className="absolute inset-y-0 right-0 flex flex-col z-50"
       style={{
         width,
-        background: "#f5f5f4",
-        borderLeft: `2px solid ${grey}`,
+        background: theme === 'dark' ? '#313131' : '#ffffff',
+        color: theme === 'dark' ? '#e1e1e1' : '#1a1a1a',
+        borderLeft: `2px solid ${theme === 'dark' ? '#414141' : '#e5e5e5'}`,
         boxShadow: "-12px 0 28px rgba(0,0,0,0.18)", // softer shadow
         transition:
           "opacity 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out",
@@ -119,9 +122,21 @@ export default function SidePanel({
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: `1px solid ${grey}`, background: "#f5f5f4" }}
+        style={{ 
+          borderBottom: `1px solid ${theme === 'dark' ? '#414141' : '#e5e5e5'}`,
+          background: theme === 'dark' ? '#313131' : '#ffffff'
+        }}
       >
         <h2 className="font-bold capitalize tracking-tight">{shownTitle}</h2>
+        <button
+          onClick={() => open && onExited?.()} // Only trigger on close if panel is open
+          className="p-2 rounded-lg hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent focus:ring-black/20 transition-colors"
+          aria-label="Close panel"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Content */}

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import HubCard from "./HubCard";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * Props:
@@ -28,6 +30,13 @@ export default function EntryPicker({
   fadeMaskStyle,
 }) {
   const [query, setQuery] = useState("");
+  const { theme } = useTheme();
+
+  const buttonBg = theme === 'dark' ? '#313131' : '#595758';
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--submenu-bg', buttonBg);
+  }, [theme, buttonBg]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -46,47 +55,25 @@ export default function EntryPicker({
   }, [items, query]);
 
   return (
-    <>
-      <button
+      <>
+      <HubCard
+        title={title}
+        icon={icon}
+        description="Browse, search, and open entries"
+        overlayColor={overlayColor}
+        bgImage={bgImage}
+        fadeMaskStyle={fadeMaskStyle}
         onClick={onToggle}
-        className="relative w-full text-left rounded-xl bg-[#595758] p-4 mb-3 overflow-hidden transition hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
-      >
-        {/* Right-half overlay (image + tint + fade) */}
-        <div
-          className="absolute top-0 right-0 h-full w-1/2 z-0"
-          style={{
-            backgroundColor: overlayColor,
-            backgroundImage: bgImage
-              ? `linear-gradient(${overlayColor}, ${overlayColor}), url(${bgImage})`
-              : undefined,
-            backgroundBlendMode: bgImage ? "multiply" : undefined,
-            backgroundSize: bgImage ? "cover, cover" : undefined,
-            backgroundPosition: bgImage ? "center, center" : undefined,
-            backgroundRepeat: bgImage ? "no-repeat, no-repeat" : undefined,
-            ...fadeMaskStyle,
-            borderTopRightRadius: "0.75rem",
-            borderBottomRightRadius: "0.75rem",
-          }}
-          aria-hidden
-        />
-        <div className="relative z-10 flex items-center justify-between text-lg sm:text-xl font-semibold">
-          <span className="flex items-center gap-2">
-            {icon ? <span aria-hidden className="inline-flex">{icon}</span> : null}
-            {title}
-          </span>
-          <span aria-hidden className={`transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
-        </div>
-        <p className="relative z-10 mt-1 text-sm opacity-90">Browse, search, and open entries</p>
-      </button>
-
-      <div className={`overflow-hidden transition-[max-height,opacity] duration-300 ${isOpen ? "max-h-[30rem] opacity-100" : "max-h-0 opacity-0"}`}>
+        isOpen={isOpen}
+      />      <div className={`overflow-hidden transition-[max-height,opacity] duration-300 ${isOpen ? "max-h-[30rem] opacity-100" : "max-h-0 opacity-0"}`}>
         {/* Search */}
         <div className="pl-2 sm:pl-3 pr-2 mb-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search entries…"
-            className="w-full rounded-lg bg-[#444] px-3 py-2 text-sm outline-none border border-white/10 focus:border-white/30"
+            className="w-full rounded-lg px-3 py-2 text-sm outline-none border border-white/10 focus:border-white/30"
+            style={{ background: 'var(--submenu-bg)' }}
           />
         </div>
 
@@ -101,11 +88,9 @@ export default function EntryPicker({
               <button
                 key={it.id}
                 onClick={() => onOpen(it)}
-                className={`w-full text-left rounded-lg px-3 py-2 transition ${
-                  active
-                    ? "bg-[#505050] ring-2 ring-white/40"
-                    : "bg-[#444] hover:bg-[#4a4a4a]"
-                }`}
+                className={`w-full text-left rounded-lg px-3 py-2 transition duration-150
+                  hover:bg-[var(--submenu-bg)] hover:ring-1 hover:ring-white/20
+                  ${active ? 'bg-[var(--submenu-bg)] ring-2 ring-white/40' : 'bg-[var(--submenu-bg)]/80'}`}
               >
                 <div className="font-semibold">{it.meta?.title || it.slug}</div>
                 {it.meta?.description && (
