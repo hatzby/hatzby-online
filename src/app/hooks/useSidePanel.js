@@ -1,7 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
 
-export function useSidePanel(initialWidth = 420, minMainVisible = 360, minW = 300) {
+export function useSidePanel(
+  // Default to 50% of viewport or provided width, whichever is larger
+  initialWidth = typeof window !== 'undefined' ? Math.max(420, window.innerWidth * 0.5) : 420,
+  // Keep at least 40% of viewport visible for main content
+  minMainVisible = typeof window !== 'undefined' ? window.innerWidth * 0.4 : 360,
+  // Minimum panel width is 35% of viewport or 300px, whichever is larger
+  minW = typeof window !== 'undefined' ? Math.max(300, window.innerWidth * 0.35) : 300
+) {
+  // Calculate responsive initial width on mount
+  const getInitialWidth = () => {
+    if (typeof window === 'undefined') return initialWidth;
+    return Math.max(window.innerWidth * 0.5, 420);
+  };
+
   const [mounted, setMounted] = useState(false);
   const [animIn, setAnimIn] = useState(false);
   const [width, setWidth] = useState(initialWidth);
@@ -9,7 +22,9 @@ export function useSidePanel(initialWidth = 420, minMainVisible = 360, minW = 30
 
   const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
   const clampWidthToViewport = (w) => {
-    const maxW = Math.max(minW, window.innerWidth - minMainVisible);
+    if (typeof window === 'undefined') return w;
+    const viewportBasedMin = Math.max(300, window.innerWidth * 0.35);
+    const maxW = Math.max(viewportBasedMin, window.innerWidth - window.innerWidth * 0.4);
     return clamp(w, minW, maxW);
   };
 
@@ -21,7 +36,7 @@ export function useSidePanel(initialWidth = 420, minMainVisible = 360, minW = 30
 
   const open = () => {
     setMounted(true);
-    setWidth((w) => clampWidthToViewport(w));
+    setWidth(getInitialWidth());
     // Double rAF guarantees: 1) mount closed → paint, 2) flip to open → animate
     requestAnimationFrame(() => {
       requestAnimationFrame(() => setAnimIn(true));

@@ -5,6 +5,39 @@ import { useEffect, useMemo, useState, Suspense } from "react";
 import HubCard from "./components/HubCard";
 import SidePanel from "./components/SidePanel";
 import EntryPicker from "./components/EntryPicker";
+
+// Mobile detection hook
+function useMobileDetector() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice = /iphone|ipad|ipod|android|blackberry|windows phone/g.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobile(isMobileDevice && isSmallScreen);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+}
+
+// Mobile Hostile Overlay Component
+function MobileHostileOverlay() {
+  return (
+    <div className="fixed inset-0 z-[9999] backdrop-blur-md flex items-center justify-center bg-black/80 text-white p-8">
+      <div className="text-center max-w-md">
+        <h2 className="text-3xl font-bold mb-4">Mobile-friendly?</h2>
+        <p className="text-4xl font-extrabold text-red-500">More like mobile-HOSTILE!</p>
+        <p className="mt-4 text-sm opacity-80">(Visit from a real computer, you coward)</p>
+      </div>
+    </div>
+  );
+}
 import { useMarquee } from "./hooks/useMarquee";
 import { useSidePanel } from "./hooks/useSidePanel";
 import { projectIndex, blogIndex } from "./lib/loadEntries";
@@ -19,24 +52,25 @@ const IconBriefcase = (
 
 const IconWrench = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="ml-2" aria-hidden>
-    <path d="M21 7a6 6 0 0 1-8.9 5.3L6 18.4a2 2 0 0 1-2.8-2.8l6.1-6.1A6 6 0 0 1 21 7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M21 7a6 6 0 0 1-8.9 5.3L6 18.4a2 2 0 0 1-2.8-2.8l6.1-6.1A6 6 0 0 1 21 7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     <circle cx="12" cy="7" r="0.5" fill="currentColor" />
   </svg>
 );
 
 const IconPaper = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="ml-2" aria-hidden>
-    <path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M15 3v5h5" stroke="currentColor" strokeWidth="1.5"/>
-    <path d="M8 13h8M8 17h8M8 9h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M15 3v5h5" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M8 13h8M8 17h8M8 9h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
 export default function Hub() {
   const GREY = "#595758";
+  const isMobile = useMobileDetector();
 
   // Header marquee
-  const phrases = ["What is a react?", "I wrote this website with ChatGPT", "Get off my lawn","8NEC was here","f6ac78b8-fb2f-48e3-9703-b11f2365f1e3"];
+  const phrases = ["What is a react?", "I wrote this website with ChatGPT", "Get off my lawn", "8NEC was here", "f6ac78b8-fb2f-48e3-9703-b11f2365f1e3"];
   const [text, setText] = useState(phrases[0]);
   useEffect(() => setText(phrases[Math.floor(Math.random() * phrases.length)]), []);
   const { ref: bandRef, bandW, containerW } = useMarquee(text, 48, 24);
@@ -60,27 +94,27 @@ export default function Hub() {
     []
   );
 
-const openPortfolio = async () => {
-  if (side.mounted && panelKey === "portfolio") {
-    side.close();
-    setPanelKey(null);
-    setActiveEntry(null);
+  const openPortfolio = async () => {
+    if (side.mounted && panelKey === "portfolio") {
+      side.close();
+      setPanelKey(null);
+      setActiveEntry(null);
+      setEntryComp(null);
+      return;
+    }
+    setPanelKey("portfolio");
+    setActiveEntry({ id: "portfolio-current" });
     setEntryComp(null);
-    return;
-  }
-  setPanelKey("portfolio");
-  setActiveEntry({ id: "portfolio-current" });
-  setEntryComp(null);
-  side.open();
+    side.open();
 
-  try {
-    const mod = await import("./entries/portfolio-current/index.jsx");
-    setEntryComp(() => mod.default || null);
-  } catch (e) {
-    console.error("Failed to load Portfolio:", e);
-    setEntryComp(() => () => <div className="p-4">Failed to load portfolio.</div>);
-  }
-};
+    try {
+      const mod = await import("./entries/portfolio-current/index.jsx");
+      setEntryComp(() => mod.default || null);
+    } catch (e) {
+      console.error("Failed to load Portfolio:", e);
+      setEntryComp(() => () => <div className="p-4">Failed to load portfolio.</div>);
+    }
+  };
 
 
   // Toggle behavior for entries (Projects/Blog/Portfolio)
@@ -126,6 +160,7 @@ const openPortfolio = async () => {
 
   return (
     <main className={`min-h-screen flex flex-col text-white ${side.resizing ? "cursor-col-resize select-none" : ""}`}>
+      {isMobile && <MobileHostileOverlay />}
       {/* HEADER */}
       <header className="relative overflow-hidden shadow-md py-3 sm:py-4">
         <div
@@ -169,37 +204,37 @@ const openPortfolio = async () => {
         <div className="w-full max-w-xl">
           {/* this fucking sucks */}
           <div
-  role="button"
-  tabIndex={0}
-  onClick={openPortfolio}                // <-- call the loader above
-  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openPortfolio()}
-  className="relative rounded-xl p-4 mb-3 bg-[#595758] overflow-hidden transition hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.18)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
->
-  <div
-    className="absolute top-0 right-0 h-full w-1/2 z-0"
-    style={{
-      backgroundColor: "#ffc2c2ff",
-      backgroundImage: `linear-gradient(#ffc2c2ff, #ffc2c2ff), url(/HubCardImages/Portfolio.png)`, // add leading slash
-      backgroundBlendMode: "multiply",
-      backgroundSize: "cover, cover",
-      backgroundPosition: "center, center",
-      backgroundRepeat: "no-repeat, no-repeat",
-      ...fadeMask,
-      borderTopRightRadius: "0.75rem",
-      borderBottomRightRadius: "0.75rem",
-    }}
-    aria-hidden
-  />
-  <div className="relative z-10">
-    <div className="flex items-center justify-between text-lg sm:text-xl font-semibold">
-      <span className="flex items-center gap-2">
-        {IconBriefcase}
-        Portfolio
-      </span>
-    </div>
-    <p className="mt-1 text-sm opacity-90">I / Me / Myself</p>
-  </div>
-</div>
+            role="button"
+            tabIndex={0}
+            onClick={openPortfolio}                // <-- call the loader above
+            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && openPortfolio()}
+            className="relative rounded-xl p-4 mb-3 bg-[#595758] overflow-hidden transition hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,0,0,0.18)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          >
+            <div
+              className="absolute top-0 right-0 h-full w-1/2 z-0"
+              style={{
+                backgroundColor: "#ffc2c2ff",
+                backgroundImage: `linear-gradient(#ffc2c2ff, #ffc2c2ff), url(/HubCardImages/Portfolio.png)`, // add leading slash
+                backgroundBlendMode: "multiply",
+                backgroundSize: "cover, cover",
+                backgroundPosition: "center, center",
+                backgroundRepeat: "no-repeat, no-repeat",
+                ...fadeMask,
+                borderTopRightRadius: "0.75rem",
+                borderBottomRightRadius: "0.75rem",
+              }}
+              aria-hidden
+            />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between text-lg sm:text-xl font-semibold">
+                <span className="flex items-center gap-2">
+                  {IconBriefcase}
+                  Portfolio
+                </span>
+              </div>
+              <p className="mt-1 text-sm opacity-90">I / Me / Myself</p>
+            </div>
+          </div>
 
           {/* Projects picker */}
           <EntryPicker
@@ -230,7 +265,7 @@ const openPortfolio = async () => {
           />
         </div>
 
-        {/* Right-side panel */}
+        {/* Right-side panel: render while mounted so exit animation can run */}
         {side.mounted && (
           <SidePanel
             open={side.animIn}
@@ -243,20 +278,20 @@ const openPortfolio = async () => {
             title={panelTitle}
           >
             <div className="h-full flex flex-col min-w-0">
-      {panelKey && (
-      <div className="flex-1 min-h-0 overflow-auto p-4">
-        {!EntryComp && <div className="opacity-80">Loading…</div>}
-        {EntryComp && (
-          // Key on kind + entry id so the animation runs on each swap
-          <div key={`${panelKey}:${activeEntry?.id || "none"}`} className="panel-swap-in">
-            <Suspense fallback={<div className="opacity-80">Loading…</div>}>
-              <EntryComp />
-            </Suspense>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
+              {panelKey && (
+                <div className="flex-1 min-h-0 overflow-auto p-4">
+                  {!EntryComp && <div className="opacity-80">Loading…</div>}
+                  {EntryComp && (
+                    // Key on kind + entry id so the animation runs on each swap
+                    <div key={`${panelKey}:${activeEntry?.id || "none"}`} className="panel-swap-in">
+                      <Suspense fallback={<div className="opacity-80">Loading…</div>}>
+                        <EntryComp />
+                      </Suspense>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </SidePanel>
         )}
       </section>

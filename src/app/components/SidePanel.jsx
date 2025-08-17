@@ -38,6 +38,26 @@ export default function SidePanel({
     }
   }, [open]);
 
+  // --- Ensure we always call onExited once when the panel finishes closing.
+  // Some browsers or environments can miss the transitionend event; provide a
+  // timed fallback and guard against double-calls.
+  const exitedCalledRef = useRef(false);
+  useEffect(() => {
+    if (open) {
+      exitedCalledRef.current = false;
+      return;
+    }
+    // If panel is closed, schedule a fallback to call onExited after the
+    // expected transition duration (200ms) plus a small buffer.
+    const t = setTimeout(() => {
+      if (!exitedCalledRef.current) {
+        exitedCalledRef.current = true;
+        onExited?.();
+      }
+    }, 260);
+    return () => clearTimeout(t);
+  }, [open, onExited]);
+
   return (
     <aside 
       className="absolute inset-y-0 right-0 text-[#111] flex flex-col z-50"
@@ -50,10 +70,22 @@ export default function SidePanel({
           "opacity 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out",
         opacity: open ? 1 : 0,
         transform: open ? "translateX(0)" : "translateX(8px)",
+        // Prevent the hidden panel from intercepting pointer events while it
+        // finishes its exit animation. This lets the page remain interactive
+        // (scroll/tap) on mobile/desktop.
+        pointerEvents: open ? "auto" : "none",
       }}
       role="dialog"
       aria-label="Side Panel"
-      onTransitionEnd={() => !open && onExited?.()}
+      aria-hidden={!open}
+      onTransitionEnd={(e) => {
+        // Only consider the transitionend from the panel element's opacity
+        // to avoid multiple calls from transform/box-shadow transitions.
+        if (e.target === e.currentTarget && e.propertyName === "opacity" && !open && !exitedCalledRef.current) {
+          exitedCalledRef.current = true;
+          onExited?.();
+        }
+      }}
     >
       {/* Resize rail (interactive) */}
       <div
