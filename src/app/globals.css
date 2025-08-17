@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- Site-wide basics ---- */
+:root {
+  --offwhite: rgba(255, 255, 243, 1);;
+}
+
+html, body {
+  height: 100%;
+  background: var(--offwhite);
+}
+
+/* ---- Header visuals ---- */
+.header-stripes {
+  background: linear-gradient(
+    135deg,
+    #bf5b5b 0%, #bf5b5b 20%,
+    #c6b955 20%, #c6b955 40%,
+    #86b460 40%, #86b460 60%,
+    #3c8d88 60%, #3c8d88 80%,
+    #595758 80%, #595758 100%
+  );
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.scanlines {
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(255,255,255,0.02) 0px,
+    rgba(255,255,255,0.02) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* ---- Marquee (CSS variables driven) ---- */
+.marquee-track {
+  width: max-content;
+  animation: marquee var(--dur, 10s) linear infinite;
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(calc(-1 * var(--w, 400px))); }
+}

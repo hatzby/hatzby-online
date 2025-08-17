@@ -1,0 +1,175 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+// components & hooks (correct relative paths)
+import MiscMenu from "./components/MiscMenu";
+import HubCard from "./components/HubCard";
+import SidePanel from "./components/SidePanel";
+import { useMarquee } from "./hooks/useMarquee";
+import { useSidePanel } from "./hooks/useSidePanel";
+
+export default function Hub() {
+  const GREY = "#595758";
+
+  // --- Header marquee (SSR-safe random phrase) ---
+  const phrases = ["What is a react?", "I wrote this website with ChatGPT", "Get off my lawn"];
+  const [text, setText] = useState(phrases[0]);
+  useEffect(() => setText(phrases[Math.floor(Math.random() * phrases.length)]), []);
+  const { ref: bandRef, bandW, containerW } = useMarquee(text, 48, 24);
+  const pxPerSec = 90;
+  const dur = Math.max(6, Math.round(bandW / pxPerSec));
+
+  // --- Misc menu & right panel ---
+  const [miscOpen, setMiscOpen] = useState(false);
+  const [panelKey, setPanelKey] = useState(null); // 'settings' | 'about' | 'secrets' | null
+  const side = useSidePanel(420, 360, 300);
+
+  const handleMiscToggle = () => setMiscOpen((v) => !v);
+  const handleSelect = (key) => {
+    if (side.mounted && panelKey === key) {
+      side.close();
+    } else {
+      setPanelKey(key);
+      side.open();
+    }
+  };
+
+  // --- Card list data ---
+  const fadeMask = {
+    WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)",
+    maskImage: "linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)",
+  };
+
+  const links = [
+    {
+      title: "Portfolio",
+      desc: "Showcasing some work I've done.",
+      href: "/portfolio",
+      color: "#bf5b5b",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" className="ml-2">
+          <rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+          <path d="M3 8h18" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      ),
+    },
+    {
+      title: "Projects (WIP)",
+      desc: "Interactive projects & experiments.",
+      href: "/projects",
+      color: "#c6b955",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" className="ml-2" fill="none">
+          <path d="M8 6l8 6-8 6V6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      title: "Blog (WIP)",
+      desc: "Thoughts, tools, and discoveries.",
+      href: "/blog",
+      color: "#86b460",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" className="ml-2" fill="none">
+          <path d="M5 4h14v14H5z" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M7 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <main className={`min-h-screen flex flex-col text-white ${side.resizing ? "cursor-col-resize select-none" : ""}`}>
+      {/* HEADER */}
+      <header className="relative overflow-hidden shadow-md py-3 sm:py-4">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg,
+              #bf5b5b 0%, #bf5b5b 20%,
+              #c6b955 20%, #c6b955 40%,
+              #86b460 40%, #86b460 60%,
+              #3c8d88 60%, #3c8d88 80%,
+              ${GREY} 80%, ${GREY} 100%)`,
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10">
+          <div className="inline-flex max-w-full items-center gap-3 sm:gap-4 rounded-xl bg-black/60 px-3 sm:px-4 py-2 ml-2 mt-1 mb-2">
+            <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight">My Hub</h1>
+            <div className="overflow-hidden rounded-md h-7 sm:h-8" style={{ width: containerW ? `${containerW}px` : undefined }}>
+              <div
+                className="marquee-track flex items-center will-change-transform text-base sm:text-lg font-extrabold tracking-tight"
+                style={{ width: "max-content", animation: bandW ? `marquee ${dur}s linear infinite` : "none", ["--bandW"]: `${bandW}px` }}
+              >
+                <div className="flex items-center">
+                  <span ref={bandRef} className="inline-block">{text}</span>
+                  <span aria-hidden className="inline-block" style={{ width: "48px" }} />
+                </div>
+                <div className="flex items-center" aria-hidden>
+                  <span className="inline-block">{text}</span>
+                  <span className="inline-block" style={{ width: "48px" }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* BODY */}
+      <section className="relative flex-1 pl-6 pr-6 sm:pl-8 sm:pr-8 py-6 overflow-x-clip">
+        <div className="w-full max-w-xl">
+          {/* Misc menu */}
+          <MiscMenu
+            title="Misc"
+            overlayColor="#3c8d88"
+            isOpen={miscOpen}
+            onToggle={handleMiscToggle}
+            activeKey={side.mounted ? panelKey : null}
+            onSelect={handleSelect}
+            fadeMaskStyle={fadeMask}
+          />
+
+          {/* Cards */}
+          {links.map((l, i) => (
+            <HubCard key={i} {...l} fadeMaskStyle={fadeMask} />
+          ))}
+        </div>
+
+        {/* Right-side panel (inside body) */}
+        {side.mounted && (
+          <SidePanel
+            open={side.animIn}
+            width={`${side.width}px`}
+            onResizeStart={side.startResize}
+            onExited={side.onExited}
+            title={panelKey}
+          >
+            {panelKey === "settings" && <p>Freedom is an illusion of choice</p>}
+            {panelKey === "about" && <p>Made by robots</p>}
+            {panelKey === "secrets" && <p>What?</p>}
+          </SidePanel>
+        )}
+      </section>
+
+      {/* FOOTER */}
+      <footer className="py-5 px-6" style={{ background: GREY }}>
+        <div className="max-w-xl text-sm text-white opacity-90">
+          <p>hatzby's stuff - 2025 // pupnetx is awesome</p>
+        </div>
+      </footer>
+
+      {/* Local styles */}
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(calc(-1 * var(--bandW))); }
+        }
+        :global(html), :global(body) { background: #f5f5f4; }
+      `}</style>
+    </main>
+  );
+}
