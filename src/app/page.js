@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, Suspense, useRef } from "react";
 
 import SidePanel from "./components/SidePanel";
 import EntryPicker from "./components/EntryPicker";
@@ -64,9 +64,40 @@ export default function Hub() {
   // Header marquee
   const phrases = ["What is a react?", "I wrote this website with ChatGPT", "Get off my lawn", "8NEC was here", "f6ac78b8-fb2f-48e3-9703-b11f2365f1e3"];
   const [text, setText] = useState(phrases[0]);
+  const [availableWidth, setAvailableWidth] = useState(0);
+  const headerRef = useRef(null);
+  const themeToggleRef = useRef(null);
+
   useEffect(() => setText(phrases[Math.floor(Math.random() * phrases.length)]), []);
+  
+  // Minimum width where marquee is still viable (Galaxy Fold Z min-width is 280px)
+  const MIN_MARQUEE_WIDTH = 120; // Allows for title (~100px) + marquee + theme button + padding on Fold
+  const [showMarquee, setShowMarquee] = useState(true);
+
+  // Calculate available space for marquee
+  useEffect(() => {
+    const updateAvailableWidth = () => {
+      if (headerRef.current && themeToggleRef.current) {
+        const headerBounds = headerRef.current.getBoundingClientRect();
+        const toggleBounds = themeToggleRef.current.getBoundingClientRect();
+        const titleWidth = 90; // Slightly reduced width for "My Hub"
+        const padding = 24; // Reduced buffer for extreme small screens
+        const available = toggleBounds.left - (headerBounds.left + titleWidth) - padding;
+        
+        // Update available width and visibility
+        setAvailableWidth(available);
+        setShowMarquee(available >= MIN_MARQUEE_WIDTH);
+      }
+    };
+
+    updateAvailableWidth();
+    window.addEventListener('resize', updateAvailableWidth);
+    return () => window.removeEventListener('resize', updateAvailableWidth);
+  }, []);
+
   const { ref: bandRef, bandW, containerW } = useMarquee(text, 48, 24);
-  const dur = Math.max(6, Math.round((bandW || 0) / 90));
+  // Adjust speed based on available width to maintain smooth animation
+  const dur = Math.max(4, Math.min(8, Math.round((bandW || 0) / Math.max(90, availableWidth / 4))));
 
   // Side panel controller & selection state
   const side = useSidePanel(520, 360, 320);
@@ -157,16 +188,30 @@ export default function Hub() {
       <header className="relative overflow-hidden shadow-md">
         <div className="absolute inset-0 header-gradient" aria-hidden />
         <div className="relative z-10 px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between max-w-full gap-4">
-            <div className="flex-shrink min-w-0">
-              <div className="inline-flex items-center gap-2 sm:gap-4 rounded-xl bg-black/60 p-2 sm:p-3">
+          <div className="flex justify-between items-center max-w-full" ref={headerRef}>
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <div className={`inline-flex items-center rounded-xl bg-black/60 transition-all duration-200 ${
+                  showMarquee 
+                    ? 'gap-2 sm:gap-4 p-1.5 sm:p-3' 
+                    : 'p-1.5 sm:py-3 sm:px-3'
+                }`}>
                 <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight">My Hub</h1>
-                {/* Hide marquee when viewport width < 300px */}
-                <div className="hidden min-[300px]:block">
-                  <div className="overflow-hidden rounded-md h-7 sm:h-8 max-w-[100px] sm:max-w-[200px] md:max-w-[300px]">
+                {showMarquee && (
+                  <div 
+                    className="overflow-hidden rounded-md h-7 sm:h-8 transition-all duration-200"
+                    style={{ 
+                      width: Math.min(containerW || 0, availableWidth) + 'px',
+                      maxWidth: '100%',
+                      opacity: availableWidth < MIN_MARQUEE_WIDTH * 1.1 ? 0 : 1 // Fade out slightly before hiding
+                    }}
+                  >
                     <div
                       className="marquee-track flex items-center will-change-transform text-base sm:text-lg font-extrabold tracking-tight"
-                      style={{ width: "max-content", animation: bandW ? `marquee ${dur}s linear infinite` : "none", ["--bandW"]: `${bandW}px` }}
+                      style={{ 
+                        width: "max-content", 
+                        animation: bandW ? `marquee ${dur}s linear infinite` : "none",
+                        ["--bandW"]: `${bandW}px`
+                      }}
                     >
                       <div className="flex items-center">
                         <span ref={bandRef} className="inline-block">{text}</span>
@@ -178,10 +223,10 @@ export default function Hub() {
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
-            <div className="shrink-0">
+            <div className="ml-4 shrink-0" ref={themeToggleRef}>
               <ThemeToggle />
             </div>
           </div>
