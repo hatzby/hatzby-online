@@ -29,18 +29,6 @@ function useMobileDetector() {
   return isMobile;
 }
 
-// Mobile Hostile Overlay Component
-function MobileHostileOverlay() {
-  return (
-    <div className="fixed inset-0 z-[9999] backdrop-blur-md flex items-center justify-center bg-black/80 text-white p-8">
-      <div className="text-center max-w-md">
-        <h2 className="text-3xl font-bold mb-4">Mobile-friendly?</h2>
-        <p className="text-4xl font-extrabold text-red-500">More like mobile-HOSTILE!</p>
-        <p className="mt-4 text-sm opacity-80">(Visit from a real computer, you coward)</p>
-      </div>
-    </div>
-  );
-}
 import { useMarquee } from "./hooks/useMarquee";
 import { useSidePanel } from "./hooks/useSidePanel";
 import { projectIndex, blogIndex } from "./lib/loadEntries";
@@ -170,27 +158,29 @@ export default function Hub() {
         <div className="absolute inset-0 header-gradient" aria-hidden />
         <div className="relative z-10 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex justify-between items-center max-w-full">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="inline-flex items-center gap-3 sm:gap-4 rounded-xl bg-black/60 p-2 sm:p-3 min-w-0 w-full">
+            <div className="flex-1 flex items-center gap-4 min-w-0">
+              <div className="flex-1 inline-flex items-center gap-3 sm:gap-4 rounded-xl bg-black/60 p-2 sm:p-3 min-w-0">
                 <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight shrink-0">My Hub</h1>
-                <div className="overflow-hidden rounded-md h-7 sm:h-8 min-w-0 w-full max-w-[min(200px,50vw)] sm:max-w-[300px]">
+                <div className="overflow-hidden rounded-md h-7 sm:h-8 min-w-0 flex-1" style={{ maxWidth: containerW ? `${containerW}px` : undefined }}>
                   <div
-                    className="marquee-track flex items-center will-change-transform text-sm sm:text-base md:text-lg font-extrabold tracking-tight"
+                    className="marquee-track flex items-center will-change-transform text-base sm:text-lg font-extrabold tracking-tight"
                     style={{ width: "max-content", animation: bandW ? `marquee ${dur}s linear infinite` : "none", ["--bandW"]: `${bandW}px` }}
                   >
                     <div className="flex items-center">
                       <span ref={bandRef} className="inline-block">{text}</span>
-                      <span aria-hidden className="inline-block" style={{ width: "24px" }} />
+                      <span aria-hidden className="inline-block" style={{ width: "48px" }} />
                     </div>
                     <div className="flex items-center" aria-hidden>
                       <span className="inline-block">{text}</span>
-                      <span aria-hidden className="inline-block" style={{ width: "24px" }} />
+                      <span className="inline-block" style={{ width: "48px" }} />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <ThemeToggle />
+            <div className="ml-4 shrink-0">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>

@@ -12,6 +12,14 @@ export default function SidePanel({
   grey = "#595758",
 }) {
   const { theme } = useTheme();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   // --- Snapshot last non-empty title/content to avoid fallback flicker
   const lastTitleRef = useRef(title);
   const lastChildrenRef = useRef(children);
@@ -62,9 +70,9 @@ export default function SidePanel({
 
   return (
     <aside 
-      className="absolute inset-y-0 right-0 flex flex-col z-50"
+      className="absolute inset-y-0 right-0 flex flex-col z-50 max-w-full"
       style={{
-        width,
+        width: isMobile ? '100%' : width,
         background: theme === 'dark' ? '#313131' : '#ffffff',
         color: theme === 'dark' ? '#e1e1e1' : '#1a1a1a',
         borderLeft: `2px solid ${theme === 'dark' ? '#414141' : '#e5e5e5'}`,
