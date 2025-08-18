@@ -70,8 +70,8 @@ export default function Hub() {
 
   useEffect(() => setText(phrases[Math.floor(Math.random() * phrases.length)]), []);
   
-  // Minimum width where marquee is still viable (Galaxy Fold Z min-width is 280px)
-  const MIN_MARQUEE_WIDTH = 120; // Allows for title (~100px) + marquee + theme button + padding on Fold
+  // Minimum width where marquee is still viable (absolute minimum with safety margin)
+  const MIN_MARQUEE_WIDTH = 80; // Minimum width for readable marquee text
   const [showMarquee, setShowMarquee] = useState(true);
 
   // Calculate available space for marquee
@@ -80,8 +80,8 @@ export default function Hub() {
       if (headerRef.current && themeToggleRef.current) {
         const headerBounds = headerRef.current.getBoundingClientRect();
         const toggleBounds = themeToggleRef.current.getBoundingClientRect();
-        const titleWidth = 90; // Slightly reduced width for "My Hub"
-        const padding = 24; // Reduced buffer for extreme small screens
+        const titleWidth = 82; // Measured minimum width for "My Hub"
+        const padding = 16; // Minimum safe padding
         const available = toggleBounds.left - (headerBounds.left + titleWidth) - padding;
         
         // Update available width and visibility
@@ -192,17 +192,17 @@ export default function Hub() {
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <div className={`inline-flex items-center rounded-xl bg-black/60 transition-all duration-200 ${
                   showMarquee 
-                    ? 'gap-2 sm:gap-4 p-1.5 sm:p-3' 
-                    : 'p-1.5 sm:py-3 sm:px-3'
+                    ? 'gap-1.5 sm:gap-4 p-1.5 sm:p-3' 
+                    : 'py-1.5 px-2 sm:py-3 sm:px-3'
                 }`}>
-                <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight">My Hub</h1>
+                <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight leading-none">My Hub</h1>
                 {showMarquee && (
                   <div 
                     className="overflow-hidden rounded-md h-7 sm:h-8 transition-all duration-200"
                     style={{ 
                       width: Math.min(containerW || 0, availableWidth) + 'px',
                       maxWidth: '100%',
-                      opacity: availableWidth < MIN_MARQUEE_WIDTH * 1.1 ? 0 : 1 // Fade out slightly before hiding
+                      opacity: availableWidth < MIN_MARQUEE_WIDTH * 1.05 ? 0 : 1 // Fade out with smaller buffer
                     }}
                   >
                     <div
