@@ -157,28 +157,31 @@ export default function Hub() {
       <header className="relative overflow-hidden shadow-md">
         <div className="absolute inset-0 header-gradient" aria-hidden />
         <div className="relative z-10 px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex justify-between items-center max-w-full">
-            <div className="flex-1 flex items-center gap-4 min-w-0">
-              <div className="flex-1 inline-flex items-center gap-3 sm:gap-4 rounded-xl bg-black/60 p-2 sm:p-3 min-w-0">
-                <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight shrink-0">My Hub</h1>
-                <div className="overflow-hidden rounded-md h-7 sm:h-8 min-w-0 flex-1" style={{ maxWidth: containerW ? `${containerW}px` : undefined }}>
-                  <div
-                    className="marquee-track flex items-center will-change-transform text-base sm:text-lg font-extrabold tracking-tight"
-                    style={{ width: "max-content", animation: bandW ? `marquee ${dur}s linear infinite` : "none", ["--bandW"]: `${bandW}px` }}
-                  >
-                    <div className="flex items-center">
-                      <span ref={bandRef} className="inline-block">{text}</span>
-                      <span aria-hidden className="inline-block" style={{ width: "48px" }} />
-                    </div>
-                    <div className="flex items-center" aria-hidden>
-                      <span className="inline-block">{text}</span>
-                      <span className="inline-block" style={{ width: "48px" }} />
+          <div className="flex items-center justify-between max-w-full gap-4">
+            <div className="flex-shrink min-w-0">
+              <div className="inline-flex items-center gap-2 sm:gap-4 rounded-xl bg-black/60 p-2 sm:p-3">
+                <h1 className="whitespace-nowrap text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight">My Hub</h1>
+                {/* Hide marquee when viewport width < 300px */}
+                <div className="hidden min-[300px]:block">
+                  <div className="overflow-hidden rounded-md h-7 sm:h-8 max-w-[100px] sm:max-w-[200px] md:max-w-[300px]">
+                    <div
+                      className="marquee-track flex items-center will-change-transform text-base sm:text-lg font-extrabold tracking-tight"
+                      style={{ width: "max-content", animation: bandW ? `marquee ${dur}s linear infinite` : "none", ["--bandW"]: `${bandW}px` }}
+                    >
+                      <div className="flex items-center">
+                        <span ref={bandRef} className="inline-block">{text}</span>
+                        <span aria-hidden className="inline-block" style={{ width: "48px" }} />
+                      </div>
+                      <div className="flex items-center" aria-hidden>
+                        <span className="inline-block">{text}</span>
+                        <span className="inline-block" style={{ width: "48px" }} />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="ml-4 shrink-0">
+            <div className="shrink-0">
               <ThemeToggle />
             </div>
           </div>
