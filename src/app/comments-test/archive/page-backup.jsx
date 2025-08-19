@@ -563,6 +563,17 @@ export default function CommentsTestPage() {
             >
               {switchingAPI && target !== "live" ? "Switching..." : "Live"}
             </button>
+            <button
+              type="button"
+              onClick={() => switchTarget("local")}
+              disabled={switchingAPI}
+              className={`px-3 py-1 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed ${
+                target === "local" ? "bg-black text-white" : "bg-white"
+              }`}
+              title="Use Local Worker"
+            >
+              {switchingAPI && target !== "local" ? "Switching..." : "Local"}
+            </button>
 
             {switchingAPI && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -621,7 +632,6 @@ export default function CommentsTestPage() {
           <input
             className="w-full rounded-xl border border-gray-300 bg-white text-gray-900 placeholder-gray-500 p-2"
             placeholder="Name (optional)"
-            maxLength={20}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
